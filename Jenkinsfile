@@ -3,6 +3,7 @@ pipeline {
 
     environment {
         IMAGE_TAG = "${env.BUILD_NUMBER}"
+        REPO_NAME = "bcakend-docker"
     }
 
     stages {
@@ -15,11 +16,12 @@ pipeline {
         stage('Build Docker Image') {
             steps {
                 script {
+                    // Get AWS info from Jenkins global credentials
                     withCredentials([
                         string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
                         string(credentialsId: 'aws-region', variable: 'AWS_REGION')
                     ]) {
-                        dockerImage = docker.build("${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/bcakend-docker:${IMAGE_TAG}")
+                        def dockerImage = docker.build("${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${IMAGE_TAG}")
                     }
                 }
             }
@@ -27,13 +29,19 @@ pipeline {
 
         stage('Login to ECR & Push') {
             steps {
-                withAWS(credentials: 'aws-ecr-cred', region: "${AWS_REGION}") {
-                    echo '''
-                        aws ecr get-login-password --region ${AWS_REGION} \
-                        | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
+                script {
+                    withCredentials([
+                        string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
+                        string(credentialsId: 'aws-region', variable: 'AWS_REGION'),
+                        [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-global-cred']
+                    ]) {
+                        sh """
+                            aws ecr get-login-password --region ${AWS_REGION} \
+                            | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
-                        docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/bcakend-docker:${IMAGE_TAG}
-                    '''
+                            docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${IMAGE_TAG}
+                        """
+                    }
                 }
             }
         }
