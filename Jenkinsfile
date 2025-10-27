@@ -33,7 +33,7 @@ pipeline {
                     withCredentials([
                         string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
                         string(credentialsId: 'aws-region', variable: 'AWS_REGION'),
-                        [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-global-cred']
+                        [$class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-cred']
                     ]) {
                         sh """
                             aws ecr get-login-password --region ${AWS_REGION} \
