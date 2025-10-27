@@ -18,7 +18,7 @@ pipeline {
                     withCredentials([
                         string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
                         string(credentialsId: 'aws-region', variable: 'AWS_REGION'),
-                        string(credentialsId: 'ecr-repo-name', variable: 'REPO_NAME')
+                        string(credentialsId: 'bcakend-docker', variable: 'REPO_NAME')
                     ]) {
                         dockerImage = docker.build("${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${IMAGE_TAG}")
                     }
