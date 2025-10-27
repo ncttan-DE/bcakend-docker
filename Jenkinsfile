@@ -17,10 +17,9 @@ pipeline {
                 script {
                     withCredentials([
                         string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
-                        string(credentialsId: 'aws-region', variable: 'AWS_REGION'),
-                        string(credentialsId: 'bcakend-docker', variable: 'REPO_NAME')
+                        string(credentialsId: 'aws-region', variable: 'AWS_REGION')
                     ]) {
-                        dockerImage = docker.build("${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${IMAGE_TAG}")
+                        dockerImage = docker.build("${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/bcakend-docker:${IMAGE_TAG}")
                     }
                 }
             }
@@ -33,7 +32,7 @@ pipeline {
                         aws ecr get-login-password --region ${AWS_REGION} \
                         | docker login --username AWS --password-stdin ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com
 
-                        docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${IMAGE_TAG}
+                        docker push ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/bcakend-docker:${IMAGE_TAG}
                     '''
                 }
             }
