@@ -1,9 +1,14 @@
 pipeline {
-    agent any
+    agent {
+        // Run the pipeline inside AWS CLI container, with Docker socket mounted
+        docker {
+            image 'amazon/aws-cli:2.13.0'
+            args '-v /var/run/docker.sock:/var/run/docker.sock'
+        }
+    }
 
     environment {
         IMAGE_TAG = "${env.BUILD_NUMBER}"
-        REPO_NAME = "bcakend-docker"
     }
 
     stages {
@@ -13,21 +18,7 @@ pipeline {
             }
         }
 
-        // stage('Build Docker Image') {
-        //     steps {
-        //         script {
-        //             // Get AWS info from Jenkins global credentials
-        //             withCredentials([
-        //                 string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
-        //                 string(credentialsId: 'aws-region', variable: 'AWS_REGION')
-        //             ]) {
-        //                 def dockerImage = docker.build("${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/${REPO_NAME}:${IMAGE_TAG}")
-        //             }
-        //         }
-        //     }
-        // }
-
-        stage('Login to ECR & Push') {
+        stage('Build & Push to ECR') {
             steps {
                 withCredentials([
                     string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
@@ -44,6 +35,12 @@ pipeline {
 
                         echo "🚀 Pushing image to ECR..."
                         docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/bcakend-docker:$BUILD_NUMBER
+
+                        echo "🏷️ Tagging image as latest..."
+                        docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/bcakend-docker:$BUILD_NUMBER \
+                                   $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/bcakend-docker:latest
+
+                        docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/bcakend-docker:latest
                     '''
                 }
             }
@@ -52,10 +49,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Image pushed successfully to ECR!"
+            echo "✅ Successfully built and pushed image to ECR: $IMAGE_TAG"
         }
         failure {
-            echo "❌ Build failed."
+            echo "❌ Build failed. Check Jenkins logs for details."
         }
     }
 }
