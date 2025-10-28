@@ -27,20 +27,20 @@ pipeline {
                 ]) {
                     sh '''
                         echo "🔧 Building Docker image..."
-                        docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/bcakend-docker:$BUILD_NUMBER .
+                        docker build -t $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/backend-docker:$BUILD_NUMBER .
 
                         echo "🔐 Logging in to ECR..."
                         aws ecr get-login-password --region $AWS_REGION | \
                         docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
 
                         echo "🚀 Pushing image to ECR..."
-                        docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/bcakend-docker:$BUILD_NUMBER
+                        docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/backend-docker:$BUILD_NUMBER
 
                         echo "🏷️ Tagging image as latest..."
-                        docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/bcakend-docker:$BUILD_NUMBER \
-                                   $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/bcakend-docker:latest
+                        docker tag $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/backend-docker:$BUILD_NUMBER \
+                                   $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/backend-docker:latest
 
-                        docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/bcakend-docker:latest
+                        docker push $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/backend-docker:latest
                     '''
                 }
             }
