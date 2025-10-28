@@ -1,11 +1,5 @@
 pipeline {
-    agent {
-        // Run the pipeline inside AWS CLI container, with Docker socket mounted
-        docker {
-            image 'amazon/aws-cli:2.13.0'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     environment {
         IMAGE_TAG = "${env.BUILD_NUMBER}"
