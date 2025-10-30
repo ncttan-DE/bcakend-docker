@@ -64,18 +64,24 @@ pipeline {
                     string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
                     string(credentialsId: 'aws-region', variable: 'AWS_REGION')
                 ]) {
-                    sh """
+                    sh "git clone https://${GITHUB_K8S}"
+                            
+                    dir('k8s-cd/backend') {
+                        sh """
+                        sed -i 's#image: .*\$#image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/backend-docker:${IMAGE_TAG}#' backend.yaml
 
-                    git clone ${GITHUB_K8S}
-                    cd ./k8s-cd/backend
+                        git config user.email "jenkins@ci.com"
+                        git config user.name "Jenkins CI"
+                        git commit -am "Update image tag to ${IMAGE_TAG}"
+                        """
+                    }
 
-                    sed -i 's#image: .*\$#image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/backend-docker:${IMAGE_TAG}#' backend.yaml
-
-                    git config user.email "jenkins@ci.com"
-                    git config user.name "Jenkins CI"
-                    git commit -am "Update image tag to ${IMAGE_TAG}"
-                    git push origin main
-                    """
+                    withCredentials([usernamePassword(credentialsId: 'github-token', usernameVariable: 'GIT_USER', passwordVariable: 'GIT_TOKEN')]) {
+                        sh """
+                        cd k8s-cd
+                        git push https://${GIT_USER}:${GIT_TOKEN}@${GITHUB_K8S} main
+                        """
+                    }
                 }
             }
         } 
