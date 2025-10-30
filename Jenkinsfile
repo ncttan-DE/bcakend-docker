@@ -59,7 +59,7 @@ pipeline {
         
         stage('Update Manifest') {
             steps {
-                withCredentials([ 
+                withCredentials([
                     string(credentialsId: 'github-k8s', variable: 'GITHUB_K8S'),
                     string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
                     string(credentialsId: 'aws-region', variable: 'AWS_REGION')
