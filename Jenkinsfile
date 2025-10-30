@@ -38,6 +38,27 @@ pipeline {
                     '''
                 }
             }
+        }
+        stage('Update Manifest') {
+            steps {
+                withCredentials([
+                    string(credentialsId: 'github-k8s', variable: 'GITHUB_K8S'),
+                    string(credentialsId: 'aws-account-id', variable: 'AWS_ACCOUNT_ID'),
+                    string(credentialsId: 'aws-region', variable: 'AWS_REGION')
+                ]) {
+                    sh """
+                    git clone ${GITHUB_K8S}
+                    cd backend
+
+                    sed -i 's#image: .*\$#image: ${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com/backend-docker:${IMAGE_TAG}#' backend.yaml
+
+                    git config user.email "jenkins@ci.com"
+                    git config user.name "Jenkins CI"
+                    git commit -am "Update image tag to ${IMAGE_TAG}"
+                    git push origin main
+                    """
+                }
+            }
         } 
     }
 
