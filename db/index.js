@@ -9,7 +9,7 @@ exports.connect = (app) => {
     autoIndex: false, // Don't build indexes
       maxPoolSize: 10, // Maintain up to 10 socket connections
   };
-
+ 
   const connectWithRetry = () => {
     mongoose.Promise = global.Promise;
     console.log("MongoDB connection with retry");
