@@ -39,6 +39,24 @@ pipeline {
                 }
             }
         }
+        stage('Clean Up') {
+            steps {
+                sh 'docker rmi $(docker images -f "dangling=true" -q) || true'
+            }
+        }
+
+        stage('Notify Success') {
+            steps {
+                echo "✅ Docker image built and pushed successfully: $IMAGE_TAG"
+            }
+        }
+
+        stage('cleanup git repo') {
+            steps {
+                sh 'rm -rf k8s-cd'
+            }
+        }
+        
         stage('Update Manifest') {
             steps {
                 withCredentials([
@@ -47,6 +65,7 @@ pipeline {
                     string(credentialsId: 'aws-region', variable: 'AWS_REGION')
                 ]) {
                     sh """
+
                     git clone ${GITHUB_K8S}
                     cd ./k8s-cd/backend
 
